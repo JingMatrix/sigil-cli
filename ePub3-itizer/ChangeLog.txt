@@ -1,0 +1,75 @@
+v056
+  - add "ePub Nav" to newly created nav title tag in head
+  - make sure that the NCX uid exactly matches any updated OPF uniqueid values
+
+v055
+  - make output folder path and file naming smarter
+  - add linear="no" to nav spine entry if html toc entry in guide
+ 
+v051
+  - add in missing <title></title> in head of nav
+
+v050
+  - major overhaul to get ePub3-itizer to update it to use 
+      the new plugin interface in Sigil 1.0 and 
+      to work with epubs with non-standard layouts
+  - should continue to work with Sigil version before Sigil 1.0
+  - remove support for SMIL updating as Sigil now properly handles that in epub3
+
+v041
+  - fix typo that caused bug when creating nav from ncx
+  - convert illegal in epub3 big tags to span tags with inline styles 
+
+v040
+  - recognize and convert calibre:title_sort to its epub3 equivalent
+  - update 48x48 quicklaunch plugin to enhance readability
+  - make opf id generation more robust to prevent the potential for id clashes
+
+v039
+  - recognize and convert calibre:series and calibre:series_index to their epub3 equivalents
+  - added simple 48x48 plugin.png icon for use in Sigil QuickLaunch Toolbar icons
+  - remove any charset attribute from link tags since epubcheck objects
+
+v038
+  - restrict fix that forced focus to Mac systems to prevent problems on other platforms
+  - remove display:none css from parts of the nav since they are redudant given the hidden attribute
+  - remove empty dc: metadata since for epub3 epubcheck barfs on it
+  - Add LGPL V2 or LGPL V3 license info to plugin.py
+
+v037
+  - Attempt to force the FileDialog to the front with focus so people know the plugin is running 
+
+v036
+  - Bug fix to prevent xml headers on smil files from interfering with the plugin
+
+v035
+  - add code to ensure only epub2 epubs are passed to ePub3-itizer
+  - also enable autostart, and update plugin.xml version
+
+V034
+  - prevent empty guide elements from being introduced into epub3 opf as marked as an error
+  - actually use the just fixed media-types for fonts
+
+V033 
+  - Alpe has contributed a major new feature - support for SMIL generation via this plugin and one of his own
+  - added hidden="" attribute to nav landmark and page-list (thnaks to Doitsu for pointing this out)
+  - added proper id attributes to landmark and nav all allow inline nav styles to work (via patch from Doitsu) 
+  - added back passing guide through to the new epub3 opf as aid for backwards compatibility
+  - remap media types x-font-ttf and x-font-opentype both to vnd.ms-opentype.  This will change to font-sfnt with Epub 3.1
+  
+
+V032 
+  -  Fixed typo bug in opf_converter that caused problem with spine properties 
+       (Thanks DiapDealer for the fix! And thanks Olivier_g for the bug report!)
+  -  added lang= and xml:lang= to specify language from opf dc:language for nav.xhtml 
+
+V031
+  - Fixed nasty bug I introduced in v030 that downcased all ncx tags and removed navPoints
+       (Thanks for Dotisu for catching this error)
+
+V030
+  -  nav changes to add style in head to prevent display of landmarks and to use ol list-style-none
+  - remove "linear = "yes" from nav entry in spine
+  - remove DOCTYPE from toc.ncx (not sure if this is correct or not)
+  - remove guide from content.opf since now optional
+  - should now properly identify and add manifest properties "scripted"
