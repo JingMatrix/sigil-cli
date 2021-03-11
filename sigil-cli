@@ -1,0 +1,110 @@
+#! zsh
+
+# arguments to this script
+#		./sigil-cli script-name ebook-dir|file [selected files in ebook-dir]
+#
+#	Scripts must be put in current directory
+
+# python/launcher.py accepts following arguments
+#
+# uses the unicode_arv call to convert all command line paths to full unicode
+# arguments:
+#      path to Sigil's ebook_root
+#      path to Sigil's output (temp) directory
+#      script type ("input", "output", "edit")
+#      path to script target file
+#
+#
+# According to following in python/wrapper.py, one should make a file `sigil.cfg` in the output tmp dir
+# if len(cfg_lst) >= 7:
+# 		self.opfbookpath = cfg_lst.pop(0)
+# 		self.appdir = cfg_lst.pop(0)
+# 		self.usrsupdir = cfg_lst.pop(0)
+# 		if not sys.platform.startswith('darwin') and not sys.platform.startswith('win'):
+# 				self.linux_hunspell_dict_dirs = cfg_lst.pop(0).split(":")
+# 		self.sigil_ui_lang = cfg_lst.pop(0)
+# 		self.sigil_spellcheck_lang = cfg_lst.pop(0)
+# 		self.epub_isDirty = (cfg_lst.pop(0) == "True")
+# 		self.epub_filepath = cfg_lst.pop(0)
+# 		self.colormode = cfg_lst.pop(0)
+# 		self.colors = cfg_lst.pop(0)
+# 		self.highdpi = cfg_lst.pop(0)
+# 		self.uifont = cfg_lst.pop(0)
+# 		self.selected = cfg_lst
+#
+#
+# A sample sigil.cfg is given as
+#		OEBPS/content.opf
+#		/usr/local/lib/sigil
+#		/home/jing/.local/share/sigil-ebook/sigil
+#		/usr/local/share/sigil/hunspell_dictionaries/
+#		en
+#		en_US
+#		False
+#		/tmp/sample.epub
+#		light
+#		#efefef,#ffffff,#000000,#308cc6,#ffffff
+#		on
+#		Ubuntu,17,-1,5,50,0,0,0,0,0
+#		OEBPS/Text/Section0001.xhtml
+
+set -e
+
+local plugindir
+# check script
+if [[ -d $(dirname 0)/$1 ]]; then
+	plugindir=$(dirname 0)/$1
+	if ! [[ -f $plugindir/src/plugin.xml && -f $plugindir/src/plugin.py ]]; then
+		echo "Script directory $plugindir is not valid"
+		exit
+	fi
+else
+	echo "Please put plugin $plugindir directory in $(dirname $0)"
+	exit
+fi
+
+# check script type
+scripttype=$(sed -n 's/<type>\(.*\)<\/type>/\1/p' $plugindir/src/plugin.xml)
+if ! [[ $scripttype=="input" || $scripttype=="output" || $scripttype=="edit" ]]; then
+	echo "Script config file $plugindir/script/plugin.xml not valid"
+fi
+
+local epub_file
+local epub_dir
+if [[ -f $2 ]]; then
+	epub_file=$2
+	epub_dir=$(mktemp -d /tmp/sigilXXXXX)
+	unzip $epub_file -d $epub_dir
+elif [[ -d $2 ]]; then
+	epub_dir=$2
+	epub_file=$(mktemp /tmp/epubXXXXX)
+	cd $epub_dir
+	if [[ -f mimetype && -d META-INF && -d OEBPS ]]; then
+		zip -rx $epub_file mimetype META-INF/ OEBPS/
+	else
+		echo "The epub directory structure is not standard"
+		exit
+	fi
+else
+	echo "No valid directory|file location provided"
+	exit
+fi
+
+# make a sample sigil.cfg file
+mkdir -p /tmp/sigil/
+echo "OEBPS/content.opf
+/usr/local/lib/sigil
+$HOME/.local/share/sigil-ebook/sigil
+/usr/local/share/sigil/hunspell_dictionaries/
+en
+en_US
+False 
+$epub_file
+light
+#efefef,#ffffff,#000000,#308cc6,#ffffff
+on
+Ubuntu,17,-1,5,50,0,0,0,0,0" >/tmp/sigil/sigil.cfg
+print -l $argv[3,-1] >>/tmp/sigil/sigil.cfg
+
+echo $(dirname $0)/python/launcher.py $epub_dir /tmp/sigil/ $scripttype $plugindir/src/plugin.py
+$(dirname $0)/python/launcher.py $epub_dir /tmp/sigil/ $scripttype $plugindir/src/plugin.py
